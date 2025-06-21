@@ -3,18 +3,36 @@ import { RealtimeChannel } from "@supabase/supabase-js";
 import { updateRoomDrawing } from "@/app/services/drawing-room.service";
 import { supabase } from "@/app/lib/initSupabase";
 import { fetchUserById, getUserSession } from "@/app/services/user.service";
-import { DrawingPen } from "./BoardContainer";
+
+type Session = {
+  user?: {
+    id?: string;
+    user_metadata?: {
+      userName?: string;
+      userColor?: string;
+    };
+  };
+};
+
+type Room = {
+  id?: string;
+  name?: string;
+  isPublic?: boolean;
+  owner?: string;
+  drawing?: string;
+};
 
 interface BoardProps {
-  room: any;
-  drawingPen: DrawingPen;
+  room: Room;
+  drawingPen: { color: string; size: number };
 }
 
 function WhiteBoard(props: BoardProps) {
   const { room, drawingPen } = props;
+  const { color, size } = drawingPen;
   const MOUSE_EVENT = "cursor";
 
-  const [session, setSession] = useState<any>();
+  const [session, setSession] = useState<Session | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [channel, setChannel] = useState<RealtimeChannel | null>(null);
   const [drawingData, setDrawingData] = useState<string | null>(null);
@@ -61,29 +79,30 @@ function WhiteBoard(props: BoardProps) {
   const receivedCursorPosition = ({
     payload,
   }: {
-    [key: string]: any;
+    [key: string]: unknown;
     type: "broadcast";
     event: string;
   }) => {
-    // console.log("Receiving cursor position: " + payload);
-    const { userId: _userId, x, y } = payload || {};
-    const cursorDiv = document.getElementById(_userId + "-cursor");
-
+    const { userId, x, y } = payload as { userId?: string; x?: number; y?: number };
+    if (!userId || x === undefined || y === undefined) return;
+    const cursorDiv = document.getElementById(userId + "-cursor");
     if (cursorDiv) {
       cursorDiv.style.left = x + "px";
       cursorDiv.style.top = y + "px";
     } else {
-      createUserMouseCursor(_userId);
+      if (typeof userId === 'string' && userId) {
+        createUserMouseCursor(userId);
+      }
     }
   };
 
   const sendMousePosition = (
     channel: RealtimeChannel,
-    userId: string,
+    userId: string | undefined,
     x: number,
     y: number
   ) => {
-    // console.log("Sending cursor position: ", { userId, x, y });
+    if (!userId) return;
     return channel.send({
       type: "broadcast",
       event: MOUSE_EVENT,
@@ -121,7 +140,7 @@ function WhiteBoard(props: BoardProps) {
   useEffect(() => {
     if (isAuthenticated && room.id) {
       const client = supabase;
-      const channel = client.channel(room.id);
+      const channel = client.channel(room.id || '');
       setChannel(channel);
 
       // Get updates from db changes
@@ -130,8 +149,8 @@ function WhiteBoard(props: BoardProps) {
         .on(
           "postgres_changes",
           { event: "*", schema: "public", table: "drawing-rooms" },
-          (payload: any) => {
-            setDrawingData(payload.new.drawing);
+          (payload: Record<string, unknown>) => {
+            setDrawingData((payload.new as { drawing: string }).drawing);
           }
         )
         .subscribe();
@@ -179,8 +198,8 @@ function WhiteBoard(props: BoardProps) {
     /* Drawing on Whiteboard */
     ctx.lineJoin = "round";
     ctx.lineCap = "round";
-    ctx.lineWidth = drawingPen.size;
-    ctx.strokeStyle = drawingPen.color;
+    ctx.lineWidth = size;
+    ctx.strokeStyle = color;
 
     // Displaying the initial image data from supabase
     if (drawingData) {
@@ -201,7 +220,7 @@ function WhiteBoard(props: BoardProps) {
       if (timeoutRef.current !== null) clearTimeout(timeoutRef.current);
       timeoutRef.current = setTimeout(() => {
         const base64ImageData = canvas.toDataURL("image/png");
-        updateRoomDrawing(room?.id, base64ImageData);
+        updateRoomDrawing(room?.id || '', base64ImageData);
       }, 1000);
     };
 
@@ -222,7 +241,7 @@ function WhiteBoard(props: BoardProps) {
     canvas.addEventListener("mouseup", () => {
       canvas.removeEventListener("mousemove", onPaint);
     });
-  }, [room?.id, drawingData, room.drawing]);
+  }, [room?.id, drawingData, room.drawing, color, size]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -230,9 +249,9 @@ function WhiteBoard(props: BoardProps) {
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    ctx.lineWidth = drawingPen.size;
-    ctx.strokeStyle = drawingPen.color;
-  }, [drawingPen.size, drawingPen.color]);
+    ctx.lineWidth = size;
+    ctx.strokeStyle = color;
+  }, [color, size]);
 
   return (
     <div className='my-auto w-full h-full border p-2'>

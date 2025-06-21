@@ -1,13 +1,22 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { usePathname } from "next/navigation";
 import { RoomCard, RoomCardSkeleton } from "./RoomCard";
 import NewRoomModal from "./NewRoomModal";
 import { fetchUserDrawingRooms, deleteDrawingRoom, updateDrawingRoom } from "@/app/services/drawing-room.service";
 import Header from "./Header";
 
-export type RoomType = {
+type Session = {
+  user?: {
+    id?: string;
+    user_metadata?: {
+      userName?: string;
+    };
+  };
+};
+
+type RoomType = {
   id: string;
   name: string;
   created_at: string;
@@ -22,7 +31,7 @@ type EditRoomState = {
 } | null;
 
 type Props = {
-  session: any;
+  session: Session | null;
 };
 
 const DashboardBody = (props: Props) => {
@@ -42,18 +51,18 @@ const DashboardBody = (props: Props) => {
   const hasAtLeastOneRoom = rooms && rooms!.length >= 0;
   const shouldShowRoom = !loading && hasAtLeastOneRoom;
 
-  const loadUserDrawingRooms = async () => {
-    return fetchUserDrawingRooms(session?.user?.id).then((res) => {
+  const loadUserDrawingRooms = useCallback(async () => {
+    return fetchUserDrawingRooms(session?.user?.id || '').then((res) => {
       setRooms(res);
     });
-  };
+  }, [session?.user?.id]);
 
   const handleDeleteRoom = async (id: string) => {
     if (!window.confirm("Are you sure you want to delete this room? This action cannot be undone.")) return;
     try {
       await deleteDrawingRoom(id);
       setRooms((prev) => prev?.filter((room) => room.id !== id) || []);
-    } catch (error) {
+    } catch {
       alert("Failed to delete room. Please try again.");
     }
   };
@@ -71,7 +80,7 @@ const DashboardBody = (props: Props) => {
         room.id === editRoom.id ? { ...room, name: editRoom.name, isPublic: editRoom.isPublic } : room
       ) || []);
       setEditRoom(null);
-    } catch (error) {
+    } catch {
       alert("Failed to update room. Please try again.");
     } finally {
       setEditLoading(false);
@@ -80,11 +89,11 @@ const DashboardBody = (props: Props) => {
 
   useEffect(() => {
     if (session?.user?.id) {
-      loadUserDrawingRooms().then((res) => {
+      loadUserDrawingRooms().then(() => {
         setLoading(false);
       });
     }
-  }, [session?.user?.id]);
+  }, [session?.user?.id, loadUserDrawingRooms]);
 
   return (
     <div className='max-w-5xl flex flex-col gap-10 mx-auto px-4 pt-28 pb-12 min-h-[80vh] bg-white/70 backdrop-blur-xl rounded-3xl shadow-2xl animate-fadein border border-slate-100'>

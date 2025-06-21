@@ -42,7 +42,7 @@ export const fetchDrawingRoomById = async (id: string) => {
   return data;
 };
 
-export const updateRoomDrawing = async (roomId: string, drawing: any) => {
+export const updateRoomDrawing = async (roomId: string, drawing: string) => {
   await supabase
     .from(DRAWING_ROOM_TABLE)
     .update({

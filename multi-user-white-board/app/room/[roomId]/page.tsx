@@ -9,12 +9,30 @@ import BoardContainer from "@/app/components/drawing-room/BoardContainer";
 import VideoWrapper from "@/app/components/videos/VideoWrapper";
 import VideoLayout from "@/app/components/videos/VideoLayout";
 
+type Session = {
+  user?: {
+    id?: string;
+    user_metadata?: {
+      userName?: string;
+      userColor?: string;
+    };
+  };
+};
+
+type Room = {
+  id?: string;
+  name?: string;
+  isPublic?: boolean;
+  owner?: string;
+  drawing?: string;
+};
+
 const DrawingRoomPage = () => {
   const { roomId } = useParams();
-  const [owner, setOwner] = useState<any | null>(null);
-  const [room, setRoom] = useState<any>([]);
-  const [user, setUser] = useState<any>({});
-  const [session, setSession] = useState<any>();
+  const [owner, setOwner] = useState<Session['user'] | null>(null);
+  const [room, setRoom] = useState<Room | null>(null);
+  const [user, setUser] = useState<Session['user'] | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [participantCount, setParticipantCount] = useState<number>(0);
 
@@ -37,7 +55,7 @@ const DrawingRoomPage = () => {
         });
       });
     });
-  }, []);
+  }, [roomId]);
 
   return (
     <main>
@@ -63,10 +81,16 @@ const DrawingRoomPage = () => {
         ) : (
           <div className='flex w-full h-full flex-row mt-20'>
             <div className='flex-1 relative'>
-              <BoardContainer roomId={room?.id} />
+              <BoardContainer roomId={room?.id || ''} />
             </div>
             <aside className='w-[300px]'>
-              <VideoWrapper userData={user} callId={room?.id}>
+              <VideoWrapper
+                userData={{
+                  id: user?.id ?? '',
+                  user_metadata: { userName: user?.user_metadata?.userName ?? '' }
+                }}
+                callId={room?.id || ''}
+              >
                 <VideoLayout setParticipantCount={setParticipantCount} />
               </VideoWrapper>
             </aside>

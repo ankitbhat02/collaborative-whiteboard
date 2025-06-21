@@ -6,9 +6,8 @@ import {
   import React, { useEffect } from "react";
   import Spinner from "./Spinner";
   import LocalParticipantVideo from "./LocalParticipantVideo";
-  import RemoteParticipantVideoList from "./RemoteParticipantVideoList";
 
-  type Props = { setParticipantCount: Function };
+  type Props = { setParticipantCount: (count: number) => void };
 
   const VideoLayout = (props: Props) => {
     const {

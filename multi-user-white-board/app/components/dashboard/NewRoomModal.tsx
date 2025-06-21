@@ -1,11 +1,17 @@
 import React, { useState } from "react";
 import { createDrawingRoom } from "@/app/services/drawing-room.service";
 
+type Session = {
+  user?: {
+    id?: string;
+  };
+};
+
 type Props = {
   show: boolean;
-  setShow: Function;
-  loadUserDrawingRooms: Function;
-  session: any;
+  setShow: (show: boolean) => void;
+  loadUserDrawingRooms: () => Promise<void>;
+  session: Session | null;
 };
 
 const NewRoomModal = (props: Props) => {
@@ -30,9 +36,10 @@ const NewRoomModal = (props: Props) => {
                 setIsCreatingRoom(true);
 
                 try {
+                    const userId = session?.user?.id || '';
                     const newRoom = await createDrawingRoom(
                     roomName,
-                    session?.user?.id,
+                    userId,
                     isPublic
                     );
 

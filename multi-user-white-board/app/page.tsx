@@ -1,13 +1,22 @@
 "use client";
-import Image from "next/image";
 import Navbar from "./components/Navbar";
 import { useEffect, useState } from "react";
 import { getUserSession } from "./services/user.service";
 import { supabase } from "./lib/initSupabase";
 import DashboardBody from "./components/dashboard/DashboardBody";
 
+type Session = {
+  user?: {
+    id?: string;
+    user_metadata?: {
+      userName?: string;
+      userColor?: string;
+    };
+  };
+};
+
 export default function Home() {
-  const [session, setSession] = useState<any>();
+  const [session, setSession] = useState<Session | null>(null);
   const [isAuthenticating, setIsAuthenticating] = useState<boolean>(true);
 
   function generateUserColor() {
@@ -25,7 +34,7 @@ export default function Home() {
 
   function createUsernameFromEmail(email: string) {
     try {
-      let username = email?.split("@")[0];
+      const username = email?.split("@")[0];
       return username;
     } catch (error) {
       throw new Error("Error occurred while creating username: " + error);
@@ -49,18 +58,20 @@ export default function Home() {
               data: { userName, userColor },
             });
 
-            const sessionWithUsername = {
-              ...session?.user,
-              user_metadata: {
-                userName,
-                userColor,
+            const sessionWithUsername: Session = {
+              user: {
+                id: session?.user?.id,
+                user_metadata: {
+                  userName,
+                  userColor,
+                },
               },
             };
 
             setSession(sessionWithUsername);
             setIsAuthenticating(false);
           } else {
-            setSession(session);
+            setSession(session as Session);
             setIsAuthenticating(false);
           }
         } else {

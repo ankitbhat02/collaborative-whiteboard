@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { RoomType } from "./DashboardBody";
 
 function getPastelColor(seed: string) {
   // Simple hash to get a pastel color from a string

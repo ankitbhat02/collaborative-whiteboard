@@ -1,10 +1,29 @@
 import React from "react";
+import Link from 'next/link';
+
+type Session = {
+  user?: {
+    id?: string;
+    user_metadata?: {
+      userName?: string;
+      userColor?: string;
+    };
+  };
+};
+
+type Room = {
+  id?: string;
+  name?: string;
+  isPublic?: boolean;
+  owner?: string;
+  drawing?: string;
+};
 
 type Props = {
-  session: any;
-  owner?: any;
+  session: Session | null;
+  owner?: Session['user'] | null;
   isRoom?: boolean;
-  room?: any;
+  room?: Room | null;
   isLoadingRoom?: boolean;
   participantCount?: number;
 };
@@ -30,7 +49,7 @@ const Navbar = (props: Props) => {
                 </linearGradient>
               </defs>
             </svg>
-            <a href='/' className='text-2xl font-extrabold tracking-tight text-violet-700 font-[family-name:var(--font-geist-sans)] drop-shadow-sm'>SyncPad</a>
+            <Link href='/' className='text-2xl font-extrabold tracking-tight text-violet-700 font-[family-name:var(--font-geist-sans)] drop-shadow-sm'>SyncPad</Link>
           </span>
           {shouldShowRoomName && (
             <div className="flex flex-wrap gap-2 items-center ml-2">
@@ -66,7 +85,7 @@ const Navbar = (props: Props) => {
             </span>
           )}
           {isRoom && (
-            <a
+            <Link
               href='/'
               className='flex items-center font-semibold text-sm px-4 py-2 rounded-full gap-2 bg-gradient-to-r from-blue-500 via-blue-400 to-blue-600 text-white shadow-lg hover:scale-105 active:scale-100 transition-all duration-200 border border-blue-200/40 backdrop-blur-md'
               style={{ boxShadow: '0 4px 24px rgba(59,130,246,0.10)' }}
@@ -85,7 +104,7 @@ const Navbar = (props: Props) => {
                 <rect x="3" y="14" width="7" height="7" rx="2" fill="currentColor" className="text-blue-600" />
               </svg>
               <span className='font-medium tracking-wide'>Dashboard</span>
-            </a>
+            </Link>
           )}
           <div
             className={`h-10 w-10 overflow-hidden rounded-full user-avatar-bg flex items-center justify-center border border-slate-200 shadow-lg cursor-pointer transition-all duration-200 hover:scale-105 bg-gradient-to-br from-violet-400/80 to-blue-400/80 backdrop-blur-md relative`}
