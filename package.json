@@ -1,0 +1,7 @@
+{
+  "dependencies": {
+    "@excalidraw/excalidraw": "^0.18.0",
+    "@tldraw/sync": "^3.13.1",
+    "@tldraw/tldraw": "^3.13.1"
+  }
+}
