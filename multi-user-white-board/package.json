@@ -11,6 +11,8 @@
   "dependencies": {
     "@stream-io/video-react-sdk": "^1.18.6",
     "@supabase/supabase-js": "^2.50.0",
+    "@tldraw/sync": "^3.13.1",
+    "@tldraw/tldraw": "^3.13.1",
     "next": "15.3.4",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
